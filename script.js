@@ -889,58 +889,91 @@ document.getElementById('btnLevel3') && document.getElementById('btnLevel3').add
 
 // ---------- ICON TOOLBOX / ICON SEQUENCE (L3) ----------
 function setupIconToolboxAndSequence(){
-  const iconToolbox = document.getElementById('iconToolbox'); if(iconToolbox) iconToolbox.innerHTML='';
+  const iconToolbox = document.getElementById('iconToolbox'); 
+  if(iconToolbox) iconToolbox.innerHTML='';
+
   const defs = [
-    {action:'R', cls:'cmd-right', icon:'➡️'},
-    {action:'L', cls:'cmd-left', icon:'⬅️'},
-    {action:'U', cls:'cmd-up', icon:'⬆️'},
-    {action:'D', cls:'cmd-down', icon:'⬇️'},
-    {action:'RR', cls:'cmd-rotR', icon:'↻<span class="small-text">D</span>'},
-    {action:'RL', cls:'cmd-rotL', icon:'↺<span class="small-text">S</span>'},
-    {action:'J', cls:'cmd-jump', icon:'⤴️'},
+    {action:'R',  cls:'cmd-right', icon:'➡️'},
+    {action:'L',  cls:'cmd-left',  icon:'⬅️'},
+    {action:'U',  cls:'cmd-up',    icon:'⬆️'},
+    {action:'D',  cls:'cmd-down',  icon:'⬇️'},
+    {action:'RR', cls:'cmd-rotR',  icon:'↻<span class="small-text">D</span>'},
+    {action:'RL', cls:'cmd-rotL',  icon:'↺<span class="small-text">S</span>'},
+    {action:'J',  cls:'cmd-jump',  icon:'⤴️'},
   ];
 
-
+  // --- CREA TOOLBOX ---
   defs.forEach(d=>{
     const el = document.createElement('div');
     el.className = `tool ${d.cls} icon-tool`;
     el.dataset.action = d.action;
     el.draggable = true;
 
-    const ic = document.createElement('div'); ic.className='icon'; ic.innerHTML = d.icon; el.appendChild(ic);
-    const hint = document.createElement('div'); hint.style.fontSize='12px'; hint.style.color='#555'; hint.textContent='Trascina'; el.appendChild(hint);
+    const ic = document.createElement('div'); 
+    ic.className='icon'; 
+    ic.innerHTML = d.icon; 
+    el.appendChild(ic);
 
-    if(iconToolbox) iconToolbox.appendChild(el);
+    const hint = document.createElement('div'); 
+    hint.style.fontSize='12px'; 
+    hint.style.color='#555'; 
+    hint.textContent='Trascina'; 
+    el.appendChild(hint);
+
+    iconToolbox.appendChild(el);
   });
 
-  if(document.getElementById('iconToolbox')){
-    Sortable.create(document.getElementById('iconToolbox'), {
-      group: { name: 'shared-icons', pull: 'clone', put: false },
-      sort: false,
-      animation: 150
-    });
-  }
+  // --- SORTABLE TOOLBOX (clone only) ---
+  Sortable.create(iconToolbox, {
+    group: { name: 'shared-icons', pull: 'clone', put: false },
+    sort: false,
+    animation: 150
+  });
 
-  const seq = document.getElementById('iconSequence'); if(seq) seq.innerHTML='';
+  // --- SORTABLE SEQUENZA ---
+  const seq = document.getElementById('iconSequence'); 
+  seq.innerHTML='';
+
   Sortable.create(seq, {
     group: { name: 'shared-icons', pull: false, put: true },
     animation: 150,
+
+    // 👇 ELIMINA AUTOMATICAMENTE SE TRASCINATO FUORI
+    removeOnSpill: true,
+
     onAdd: function (evt){
-      // create block
-      const action = evt.item.dataset.action || evt.item.getAttribute('data-action');
+      const action = evt.item.dataset.action;
+
+      // crea nuovo blocco
       const block = document.createElement('div');
       block.className = 'icon-seq-block';
       block.dataset.action = action;
 
-      const ic = document.createElement('div'); ic.className='icon';ic.innerHTML = action === 'R' ? '➡️' :
-      action === 'L' ? '⬅️' : action === 'U' ? '⬆️' : action === 'D' ? '⬇️' : action === 'RR' ? '↻<span class="small-text">D</span>' :action === 'RL' ? '↺<span class="small-text">S</span>' :'⤴️';
+      const ic = document.createElement('div'); 
+      ic.className='icon';
+      ic.innerHTML = 
+        action === 'R'  ? '➡️' :
+        action === 'L'  ? '⬅️' :
+        action === 'U'  ? '⬆️' :
+        action === 'D'  ? '⬇️' :
+        action === 'RR' ? '↻<span class="small-text">D</span>' :
+        action === 'RL' ? '↺<span class="small-text">S</span>' :
+                          '⤴️';
       block.appendChild(ic);
 
+      const input = document.createElement('input'); 
+      input.type='number'; 
+      input.min='0'; 
+      input.value='1'; 
+      block.appendChild(input);
 
-      const input = document.createElement('input'); input.type='number'; input.min='0'; input.value='1'; block.appendChild(input);
+      const rm = document.createElement('button'); 
+      rm.className='remove'; 
+      rm.textContent='✖'; 
+      rm.onclick = ()=>block.remove(); 
+      block.appendChild(rm);
 
-      const rm = document.createElement('button'); rm.className='remove'; rm.textContent='✖'; rm.onclick = ()=>block.remove(); block.appendChild(rm);
-
+      // sostituisce il clone con il blocco vero
       evt.item.replaceWith(block);
     }
   });
