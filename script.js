@@ -324,66 +324,97 @@ function rotate(dir){
 
 // ---------- SEQUENCE TOOLBOX (L2) ----------
 let seqSortable, toolboxSortable;
-function setupToolboxAndSequence(){
-  const toolbox = document.getElementById('toolbox'); if(toolbox) toolbox.innerHTML='';
+function setupToolboxAndSequence() {
+  const toolbox = document.getElementById('toolbox');
+  if (toolbox) toolbox.innerHTML = '';
+
   const defs = [
-    {action:'moveRight', cls:'cmd-right', icon:'➡️'},
-    {action:'moveLeft', cls:'cmd-left', icon:'⬅️'},
-    {action:'moveUp', cls:'cmd-up', icon:'⬆️'},
-    {action:'moveDown', cls:'cmd-down', icon:'⬇️'},
-    {action:'rotR', cls:'cmd-rotR', icon:'↻<span class="small-text">D</span>'},
-    {action:'rotL', cls:'cmd-rotL', icon:'↺<span class="small-text">S</span>'},
-    {action:'jump', cls:'cmd-jump', icon:'⤴️'},
+    { action: 'moveRight', cls: 'cmd-right', icon: '➡️' },
+    { action: 'moveLeft', cls: 'cmd-left', icon: '⬅️' },
+    { action: 'moveUp', cls: 'cmd-up', icon: '⬆️' },
+    { action: 'moveDown', cls: 'cmd-down', icon: '⬇️' },
+    { action: 'rotR', cls: 'cmd-rotR', icon: '↻<span class="small-text">D</span>' },
+    { action: 'rotL', cls: 'cmd-rotL', icon: '↺<span class="small-text">S</span>' },
+    { action: 'jump', cls: 'cmd-jump', icon: '⤴️' }
   ];
 
-
-  defs.forEach(d=>{
+  // --- CREA TESSERE TOOLBOX ---
+  defs.forEach(d => {
     const el = document.createElement('div');
     el.className = `tool ${d.cls}`;
     el.dataset.action = d.action;
     el.draggable = true;
 
-    const ic = document.createElement('div'); ic.className='icon'; ic.innerHTML = d.icon; el.appendChild(ic);
-    const hint = document.createElement('div'); hint.style.fontSize='12px'; hint.style.color='#555'; hint.textContent='Trascina'; el.appendChild(hint);
-    if(toolbox) toolbox.appendChild(el);
+    const ic = document.createElement('div');
+    ic.className = 'icon';
+    ic.innerHTML = d.icon;
+    el.appendChild(ic);
+
+    const hint = document.createElement('div');
+    hint.style.fontSize = '12px';
+    hint.style.color = '#555';
+    hint.textContent = 'Trascina';
+    el.appendChild(hint);
+
+    toolbox.appendChild(el);
   });
 
-  if(toolbox) {
-    toolboxSortable = Sortable.create(toolbox, {
-      group: { name: 'shared', pull: 'clone', put: false },
-      sort: false,
-      animation: 150
-    });
-  }
+  // --- SORTABLE TOOLBOX (solo clonaggio) ---
+  Sortable.create(toolbox, {
+    group: { name: 'shared', pull: 'clone', put: false },
+    sort: false,
+    animation: 150
+  });
 
-  const seq = document.getElementById('sequence'); if(seq) seq.innerHTML='';
-  seqSortable = Sortable.create(seq, {
+  // --- SORTABLE SEQUENZA ---
+  const seq = document.getElementById('sequence');
+  seq.innerHTML = '';
+
+  Sortable.create(seq, {
     group: { name: 'shared', pull: false, put: true },
     animation: 150,
-    onAdd: function (evt){
+
+    // 👇 QUESTA È LA CHIAVE: elimina gli elementi trascinati fuori
+    removeOnSpill: true,
+
+    onAdd(evt) {
       const node = evt.item;
       node.className = 'seq-block';
+
       const action = node.dataset.action || node.getAttribute('data-action');
       node.dataset.action = action;
       node.innerHTML = '';
 
-      const ic = document.createElement('div'); 
-      ic.className='icon';
-      ic.innerHTML = action === 'moveRight' ? '➡️' :
-                     action === 'moveLeft'  ? '⬅️' :
-                     action === 'moveUp'    ? '⬆️' :
-                     action === 'moveDown'  ? '⬇️' :
-                     action === 'rotR'      ? '↻<span class="small-text">D</span>' :
-                     action === 'rotL'      ? '↺<span class="small-text">S</span>' :
-                     '⤴️';
+      // Icona
+      const ic = document.createElement('div');
+      ic.className = 'icon';
+      ic.innerHTML =
+        action === 'moveRight' ? '➡️' :
+        action === 'moveLeft' ? '⬅️' :
+        action === 'moveUp' ? '⬆️' :
+        action === 'moveDown' ? '⬇️' :
+        action === 'rotR' ? '↻<span class="small-text">D</span>' :
+        action === 'rotL' ? '↺<span class="small-text">S</span>' :
+        '⤴️';
       node.appendChild(ic);
 
-      const input = document.createElement('input'); input.type='number'; input.min='0'; input.value='1'; node.appendChild(input);
+      // Input numerico
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '0';
+      input.value = '1';
+      node.appendChild(input);
 
-      const rm = document.createElement('button'); rm.className='remove'; rm.textContent='✖'; rm.onclick = ()=>node.remove(); node.appendChild(rm);
+      // Pulsante X
+      const rm = document.createElement('button');
+      rm.className = 'remove';
+      rm.textContent = '✖';
+      rm.onclick = () => node.remove();
+      node.appendChild(rm);
     }
   });
 }
+
 
 function clearSequence(){ document.getElementById('sequence') && (document.getElementById('sequence').innerHTML=''); }
 
